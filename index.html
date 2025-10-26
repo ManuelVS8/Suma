@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La suma con llevadas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variables CSS para personalización */
+        :root {
+            --primary: #3b82f6;
+            --secondary: #ff9f43;
+            --success: #10b981;
+            --danger: #ef4444;
+            --light-success: #86efac;
+            --light-danger: #fca5a5;
+            --bg-start: #1a3a5f;
+            --bg-end: #0d2340;
+            --card-bg: #FFFFFF;
+            --text-dark: #1e3a8a;
+            --text-medium: #334155;
+            --text-light: #6b7280;
+            --hint-bg: #e0effc;
+            --confetti-colors: #d946ef, #ff9f43, #3b82f6, #10b981, #facc15;
+            --shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
+            --transition: 180ms ease;
+            --final-score-color: #0055e0;
+        }
+
+        /* Estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom, var(--bg-start), var(--bg-end));
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        /* Contenedor principal - optimizado para móviles */
+        .container {
+            width: 100%;
+            max-width: 100%;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tipografía */
+        h1, h2, h3 {
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.6em;
+        }
+
+        h3 {
+            font-size: 1.3em;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-light);
+        }
+
+        /* Botones */
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+            text-decoration: none;
+            min-height: 44px;
+            min-width: 44px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-light-success {
+            background-color: var(--light-success);
+            color: var(--text-dark);
+        }
+
+        .btn-light-success:hover {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-light-danger {
+            background-color: var(--light-danger);
+            color: var(--text-dark);
+        }
+
+        .btn-light-danger:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 50%;
+            background-color: transparent;
+            color: var(--text-dark);
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-icon:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-group-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Pantallas */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Pantalla de inicio */
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h1 {
+            margin-bottom: 20px;
+        }
+
+        .start-screen p {
+            max-width: 90%;
+            margin: 0 auto 20px;
+            font-size: 1.1em;
+            color: var(--text-light);
+        }
+
+        .hint-card {
+            background-color: var(--hint-bg);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 20px auto;
+            max-width: 90%;
+            color: var(--text-medium);
+            font-size: 1em;
+        }
+
+        .hint-card span {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .start-image {
+            max-width: 90%;
+            margin: 20px auto 0;
+            display: block;
+            border-radius: 12px;
+        }
+
+        /* Cabecera del juego */
+        .game-header {
+            position: relative;
+            min-height: 60px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Botones fijos en las esquinas */
+        .fixed-sound-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all var(--transition);
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .fixed-sound-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .fixed-help-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all var(--transition);
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .fixed-help-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .game-header .timer,
+        .game-header .infinite-score {
+            background-color: var(--card-bg);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-dark);
+            z-index: 5;
+        }
+
+        /* Barra de progreso */
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--secondary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: right;
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        /* Operación matemática - optimizada para móviles */
+        .operation-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 25px 0;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .operation {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-family: 'Courier New', monospace;
+            font-size: 1.6rem;
+        }
+
+        .row {
+            display: flex;
+            gap: 0.3rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .digit-box {
+            width: 2.8rem;
+            height: 2.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .carry-mark {
+            position: absolute;
+            top: -1.2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ef4444;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .line {
+            width: 2.8rem;
+            border-top: 2px solid #1f2937;
+        }
+
+        .answer-box {
+            width: 2.8rem;
+            height: 2.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1.4rem;
+            font-weight: bold;
+            background-color: #f9fafb;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .answer-box.current {
+            border-color: #a855f7;
+            background-color: #faf5ff;
+            transform: scale(1.1);
+        }
+
+        .answer-box.filled {
+            border-color: #4ade80;
+            background-color: #f0fdf4;
+        }
+
+        .answer-box.filled:hover {
+            background-color: #dcfce7;
+        }
+
+        .answer-box.correct {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            font-weight: 900;
+        }
+
+        .answer-box.incorrect {
+            border-color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            font-weight: 900;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .arrow-container {
+            display: flex;
+            align-items: center;
+            margin-left: 0.8rem;
+        }
+
+        .arrow {
+            width: 2.4rem;
+            height: 2.4rem;
+            color: #7c3aed;
+            animation: bounce 1s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Banco de dígitos - optimizado para móviles con distribución simétrica */
+        .digit-bank {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px auto;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .digit-bank.hidden {
+            display: none;
+        }
+
+        .digit-btn {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-bg);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            z-index: 10;
+        }
+
+        .digit-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .digit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .digit-btn:disabled:hover {
+            background-color: var(--card-bg);
+            color: var(--text-dark);
+            border-color: #e0e0e0;
+            transform: none;
+        }
+
+        /* Cuadro emergente para pregunta de llevada */
+        .carry-popup {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: none;
+            text-align: center;
+            max-width: 90%;
+            width: auto;
+        }
+
+        .carry-popup.visible {
+            display: block;
+        }
+
+        .carry-popup h3 {
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            font-size: 1.1em;
+            white-space: nowrap;
+        }
+
+        .carry-popup-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Feedback */
+        .feedback {
+            margin: 20px 0;
+            padding: 18px;
+            border-radius: 12px;
+            display: none;
+            position: relative;
+            z-index: 50;
+            font-size: 1.2em;
+            font-weight: 700;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .feedback.success {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 3px solid var(--success);
+            color: var(--success);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .feedback.error {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 3px solid var(--danger);
+            color: var(--danger);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .feedback.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 90%;
+            width: 320px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform var(--transition);
+            position: relative;
+            z-index: 1001;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color var(--transition);
+            position: relative;
+            z-index: 10;
+        }
+
+        .modal-close:hover {
+            color: var(--text-dark);
+        }
+
+        /* Estilos para el contenido del modal de ayuda */
+        .help-content h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-size: 1.2em;
+        }
+
+        .help-steps {
+            margin-bottom: 20px;
+        }
+
+        .help-steps ol {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .help-steps li {
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .help-rule {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .rule-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .rule-arrow {
+            color: var(--primary);
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .rule-text {
+            flex: 1;
+            font-size: 1em;
+        }
+
+        .rule-highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Pantalla final */
+        .final-screen {
+            text-align: center;
+        }
+
+        .trophy {
+            font-size: 60px;
+            margin: 20px 0;
+            animation: trophyAnimation 2s ease-in-out infinite;
+            display: none;
+        }
+
+        .trophy.show {
+            display: block;
+        }
+
+        @keyframes trophyAnimation {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            50% { transform: scale(1.2) rotate(5deg); }
+            75% { transform: scale(1.1) rotate(-5deg); }
+        }
+
+        .final-score {
+            font-size: 2.8em;
+            font-weight: 700;
+            color: var(--final-score-color) !important;
+            margin: 20px 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .final-score.perfect {
+            color: var(--final-score-color) !important;
+        }
+
+        .final-time {
+            font-size: 18px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .final-message {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        .credit {
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .school-logo {
+            max-width: 120px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 999;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Resaltado de magnitud en el título */
+        .magnitude-highlight {
+            color: #ff9f43;
+            font-weight: 700;
+        }
+
+        /* Responsive - Tablets y pantallas medianas */
+        @media (min-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                max-width: 768px;
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2.5em;
+            }
+            
+            h2 {
+                font-size: 1.7em;
+            }
+            
+            h3 {
+                font-size: 1.4em;
+            }
+            
+            .operation {
+                font-size: 1.9rem;
+            }
+            
+            .digit-box {
+                width: 3.2rem;
+                height: 3.2rem;
+            }
+            
+            .line {
+                width: 3.2rem;
+            }
+            
+            .answer-box {
+                width: 3.2rem;
+                height: 3.2rem;
+                font-size: 1.6rem;
+            }
+            
+            .carry-mark {
+                font-size: 1rem;
+            }
+            
+            .digit-btn {
+                width: 54px;
+                height: 54px;
+                font-size: 24px;
+            }
+            
+            .digit-bank {
+                max-width: 400px;
+                gap: 12px;
+            }
+            
+            .arrow {
+                width: 2.8rem;
+                height: 2.8rem;
+            }
+            
+            .btn {
+                padding: 14px 35px;
+                font-size: 1.2em;
+            }
+            
+            .modal-content {
+                width: 500px;
+                padding: 30px;
+            }
+            
+            .trophy {
+                font-size: 80px;
+            }
+            
+            .final-score {
+                font-size: 3.2em;
+            }
+            
+            .school-logo {
+                max-width: 150px;
+            }
+        }
+
+        /* Responsive - Desktop y pantallas grandes */
+        @media (min-width: 1024px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                max-width: 1200px;
+                padding: 30px;
+            }
+            
+            h1 {
+                font-size: 2.8em;
+            }
+            
+            h2 {
+                font-size: 1.8em;
+            }
+            
+            h3 {
+                font-size: 1.5em;
+            }
+            
+            .operation {
+                font-size: 2.1rem;
+            }
+            
+            .digit-box {
+                width: 3.6rem;
+                height: 3.6rem;
+            }
+            
+            .line {
+                width: 3.6rem;
+            }
+            
+            .answer-box {
+                width: 3.6rem;
+                height: 3.6rem;
+                font-size: 1.8rem;
+            }
+            
+            .carry-mark {
+                font-size: 1.1rem;
+            }
+            
+            .digit-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 26px;
+            }
+            
+            .digit-bank {
+                max-width: 1000px;
+                gap: 14px;
+            }
+            
+            .arrow {
+                width: 3.2rem;
+                height: 3.2rem;
+            }
+            
+            .btn {
+                padding: 15px 40px;
+                font-size: 1.2em;
+            }
+            
+            .modal-content {
+                width: 600px;
+                padding: 35px;
+            }
+            
+            .trophy {
+                font-size: 100px;
+            }
+            
+            .final-score {
+                font-size: 3.5em;
+            }
+            
+            .school-logo {
+                max-width: 180px;
+            }
+        }
+
+        /* Pantallas muy pequeñas */
+        @media (max-width: 360px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                max-width: 100%;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+            
+            .operation {
+                font-size: 1.4rem;
+            }
+            
+            .digit-box {
+                width: 2.4rem;
+                height: 2.4rem;
+            }
+            
+            .line {
+                width: 2.4rem;
+            }
+            
+            .answer-box {
+                width: 2.4rem;
+                height: 2.4rem;
+                font-size: 1.2rem;
+            }
+            
+            .carry-mark {
+                font-size: 0.7rem;
+            }
+            
+            .digit-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+            
+            .digit-bank {
+                max-width: 280px;
+                gap: 8px;
+            }
+            
+            .arrow {
+                width: 2rem;
+                height: 2rem;
+            }
+            
+            .btn {
+                padding: 10px 25px;
+                font-size: 1em;
+            }
+        }
+
+        /* Orientación horizontal en móviles */
+        @media (max-height: 600px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                max-width: 95vw;
+                padding: 15px;
+                margin: 0 auto;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 12px;
+            }
+            
+            h2 {
+                font-size: 1.4em;
+            }
+            
+            .operation {
+                font-size: 1.3rem;
+            }
+            
+            .digit-box {
+                width: 2.2rem;
+                height: 2.2rem;
+            }
+            
+            .line {
+                width: 2.2rem;
+            }
+            
+            .answer-box {
+                width: 2.2rem;
+                height: 2.2rem;
+                font-size: 1.1rem;
+            }
+            
+            .carry-mark {
+                font-size: 0.6rem;
+            }
+            
+            .digit-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .digit-bank {
+                max-width: 800px;
+                gap: 8px;
+            }
+            
+            .arrow {
+                width: 1.8rem;
+                height: 1.8rem;
+            }
+            
+            .btn {
+                padding: 8px 20px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Pantallas horizontales más grandes (tablets en landscape) */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .container {
+                max-width: 95vw;
+            }
+            
+            .digit-bank {
+                max-width: 900px;
+            }
+        }
+
+        /* Pantallas horizontales muy grandes (desktop en landscape) */
+        @media (min-width: 1024px) and (orientation: landscape) {
+            .container {
+                max-width: 1200px;
+            }
+            
+            .digit-bank {
+                max-width: 1000px;
+            }
+        }
+
+        /* Accesibilidad */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Animaciones reducidas */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .trophy {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de inicio -->
+    <div id="startScreen" class="screen start-screen active">
+        <div class="container">
+            <h1>La suma con llevadas</h1>
+            <p>Practica la <span class="magnitude-highlight">suma con llevadas</span> y aprende jugando</p>
+            
+            <div class="hint-card">
+                Recuerda que en la <span class="magnitude-highlight">suma con llevadas</span>, vamos <span class="magnitude-highlight">de derecha a izquierda</span>. Si tienes dudas, pulsa el botón de ayuda. <br><br><strong>¡Buena suerte!</strong>
+            </div>
+            
+            <div class="btn-group">
+                <button id="startBtn" class="btn" onclick="startGame()">Comenzar</button>
+            </div>
+            
+            <img src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Ni%C3%B1os.png" alt="Niños estudiando" class="start-image">
+        </div>
+    </div>
+
+    <!-- Pantalla de juego -->
+    <div id="gameScreen" class="screen">
+        <!-- Botones fijos en las esquinas -->
+        <button id="fixedSoundBtn" class="fixed-sound-btn" aria-label="Activar sonido" onclick="toggleSound()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+        </button>
+        
+        <button id="fixedHelpBtn" class="fixed-help-btn" aria-label="Ayuda" onclick="toggleHelpModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+        </button>
+        
+        <div class="container">
+            <!-- Cabecera del juego -->
+            <div class="game-header">
+                <div id="timer" class="timer" style="display: none;">00:00</div>
+                <div id="infiniteScore" class="infinite-score" style="display: none;">Puntuación: 0</div>
+            </div>
+
+            <div id="normalProgress" class="progress-text" style="display: none;">1/3</div>
+            <div id="normalProgressBar" class="progress-bar" style="display: none;">
+                <div class="progress-fill" id="progressFill" style="width: 33.33%"></div>
+            </div>
+            
+            <h2 id="questionTitle">Realiza las siguientes sumas con llevadas</h2>
+            
+            <div class="operation-wrapper">
+                <div class="operation">
+                    <div id="summand1Row" class="row"></div>
+                    <div id="summand2Row" class="row"></div>
+                    <div id="summand3Row" class="row"></div>
+                    <div id="lineRow" class="row"></div>
+                    <div id="answerRow" class="row"></div>
+                </div>
+                <div class="arrow-container">
+                    <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <path d="M12 19V5M5 12l7-7 7 7"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Banco de dígitos siempre visible -->
+            <div class="digit-bank" id="digitBank"></div>
+            
+            <div class="btn-group-row">
+                <button id="deleteBtn" class="btn" onclick="backspace()">Borrar</button>
+                <button id="checkBtn" class="btn btn-primary" onclick="checkAnswer()">Comprobar</button>
+                <button id="continueBtn" class="btn btn-success" style="display: none;" onclick="nextQuestion()">Continuar</button>
+                <button id="homeBtn" class="btn" style="display: none;" onclick="goToStartScreen()">Inicio</button>
+                <button id="exitInfiniteBtn" class="btn" style="display: none;" onclick="exitInfiniteMode()">Salir</button>
+            </div>
+            
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+
+            <!-- Cuadro emergente para pregunta de llevada -->
+            <div id="carryPopup" class="carry-popup">
+                <h3>¿Cuántas te llevas?</h3>
+                <div class="carry-popup-buttons">
+                    <button class="btn btn-light-success" onclick="handleCarry(0)">Ninguna</button>
+                    <button class="btn btn-light-success" onclick="handleCarry(1)">Me llevo 1</button>
+                    <button class="btn btn-light-success" onclick="handleCarry(2)">Me llevo 2</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla final -->
+    <div id="finalScreen" class="screen final-screen">
+        <div class="container">
+            <h1>La suma con llevadas</h1>
+            
+            <div id="trophyContainer" class="trophy">🏆</div>
+            
+            <div class="final-score" id="finalScore">0</div>
+            
+            <div class="final-time" id="finalTime">Tiempo: 00:00</div>
+            
+            <p id="finalMessage"></p>
+            
+            <div class="btn-group">
+                <button id="restartBtn" class="btn" style="background-color: #f59e42;" onclick="restartGame()">Volver al menú</button>
+                <button id="infiniteModeBtn" class="btn btn-primary" onclick="startInfiniteMode()">Entrenamiento infinito</button>
+            </div>
+            
+            <p class="credit">Created by Manuel J. Ventura</p>
+            
+            <img src="https://github.com/ManuelVS8/Efectos_audio/blob/1e2a36cdd1f8bedcb578a30f5ec5cc8f21c287fe/Siurot.png?raw=true" alt="Logo del colegio" class="school-logo">
+        </div>
+    </div>
+
+    <!-- Modal de ayuda -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>¿Cómo realizar la suma con llevadas?</h2>
+                <button class="modal-close" id="closeHelpModal" onclick="toggleHelpModal()">&times;</button>
+            </div>
+            <div class="help-content">
+                <h3>Pasos para realizar la suma con llevadas:</h3>
+                <div class="help-steps">
+                    <ol>
+                        <li>Empieza por la derecha.</li>
+                        <li>Suma todos los dígitos de la columna.</li>
+                        <li>Si el resultado es un número entre 10 y 19, colocas la última cifra y <span class="magnitude-highlight">te llevas 1</span>.</li>
+                        <li>Si el resultado es un número entre 20 y 29, colocas la última cifra y <span class="magnitude-highlight">te llevas 2</span>.</li>
+                        <li>Coloca las llevadas arriba en la siguiente columna.</li>
+                    </ol>
+                   <p style="margin-top: 20px; margin-bottom: 20px; text-align: center; font-weight: bold; color: #F54927;">¡<span class="magnitude-highlight">Comprueba tu respuesta al final!</span></p>
+
+                </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración del juego
+        var DIGITS = 5;
+        var summand1 = '';
+        var summand2 = '';
+        var summand3 = '';
+        var userAnswer = {};
+        var carries = {};
+        var currentColumn = 0;
+        var showCarryQuestion = false;
+        var gameStarted = false;
+        var isChecked = false;
+        var gameState = {
+            questions: [],
+            currentQuestionIndex: 0,
+            score: 0,
+            startTime: null,
+            timerInterval: null,
+            soundEnabled: true,
+            audioInitialized: false,
+            gameMode: 'normal',
+            infiniteScore: 0
+        };
+
+        // Elementos del DOM
+        const elements = {
+            startScreen: document.getElementById('startScreen'),
+            gameScreen: document.getElementById('gameScreen'),
+            finalScreen: document.getElementById('finalScreen'),
+            startBtn: document.getElementById('startBtn'),
+            helpModal: document.getElementById('helpModal'),
+            closeHelpModal: document.getElementById('closeHelpModal'),
+            questionTitle: document.getElementById('questionTitle'),
+            summand1Row: document.getElementById('summand1Row'),
+            summand2Row: document.getElementById('summand2Row'),
+            summand3Row: document.getElementById('summand3Row'),
+            lineRow: document.getElementById('lineRow'),
+            answerRow: document.getElementById('answerRow'),
+            digitBank: document.getElementById('digitBank'),
+            deleteBtn: document.getElementById('deleteBtn'),
+            checkBtn: document.getElementById('checkBtn'),
+            continueBtn: document.getElementById('continueBtn'),
+            homeBtn: document.getElementById('homeBtn'),
+            exitInfiniteBtn: document.getElementById('exitInfiniteBtn'),
+            fixedSoundBtn: document.getElementById('fixedSoundBtn'),
+            fixedHelpBtn: document.getElementById('fixedHelpBtn'),
+            feedback: document.getElementById('feedback'),
+            progressText: document.getElementById('normalProgress'),
+            progressFill: document.getElementById('progressFill'),
+            normalProgressBar: document.getElementById('normalProgressBar'),
+            normalProgress: document.getElementById('normalProgress'),
+            infiniteScore: document.getElementById('infiniteScore'),
+            timer: document.getElementById('timer'),
+            finalScore: document.getElementById('finalScore'),
+            finalTime: document.getElementById('finalTime'),
+            finalMessage: document.getElementById('finalMessage'),
+            restartBtn: document.getElementById('restartBtn'),
+            infiniteModeBtn: document.getElementById('infiniteModeBtn'),
+            trophyContainer: document.getElementById('trophyContainer'),
+            carryPopup: document.getElementById('carryPopup')
+        };
+
+        // Sistema de sonido MEJORADO con gestión de contexto de audio
+        const Sounds = {
+            audioContext: null,
+            sounds: {},
+            
+            init() {
+                // Crear objetos Audio para cada sonido
+                this.sounds = {
+                    correct: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/7b86808e254100aeaba6285b3e0b82650ae78055/Correcto.mp3?raw=true'),
+                    error: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3?raw=true'),
+                    completed: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/7b86808e254100aeaba6285b3e0b82650ae78055/Completado.mp3?raw=true'),
+                    victory: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/7b86808e254100aeaba6285b3e0b82650ae78055/Termin%C3%A9.mp3?raw=true'),
+                    tap: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3?raw=true')
+                };
+
+                // Configurar propiedades de los audios
+                Object.values(this.sounds).forEach(audio => {
+                    audio.preload = 'auto';
+                    audio.volume = 0.7;
+                });
+
+                console.log("Sistema de audio inicializado");
+            },
+
+            initAudioContext() {
+                if (!this.audioContext) {
+                    try {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log("AudioContext creado:", this.audioContext.state);
+                    } catch (e) {
+                        console.error("Error al crear AudioContext:", e);
+                    }
+                }
+
+                // Reanudar el contexto si está suspendido
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume().then(() => {
+                        console.log("AudioContext reanudado exitosamente");
+                        gameState.audioInitialized = true;
+                    }).catch(e => {
+                        console.error("Error al reanudar AudioContext:", e);
+                    });
+                } else {
+                    gameState.audioInitialized = true;
+                }
+            },
+
+            play(soundName) {
+                if (!gameState.soundEnabled) return;
+
+                // Inicializar el contexto de audio si no está listo
+                if (!gameState.audioInitialized) {
+                    this.initAudioContext();
+                }
+
+                const audio = this.sounds[soundName];
+                if (!audio) {
+                    console.error(`Sonido '${soundName}' no encontrado`);
+                    return;
+                }
+
+                // Reiniciar el audio y reproducir
+                audio.currentTime = 0;
+                audio.play()
+                    .then(() => {
+                        console.log(`Sonido '${soundName}' reproducido correctamente`);
+                    })
+                    .catch(e => {
+                        console.warn(`No se pudo reproducir '${soundName}':`, e.message);
+                        // Intentar inicializar el contexto de audio de nuevo
+                        this.initAudioContext();
+                    });
+            },
+            
+            playCorrect() {
+                this.play('correct');
+            },
+            
+            playError() {
+                this.play('error');
+            },
+            
+            playCompleted() {
+                this.play('completed');
+            },
+            
+            playVictory() {
+                this.play('victory');
+            },
+            
+            playTap() {
+                this.play('tap');
+            },
+            
+            toggle() {
+                gameState.soundEnabled = !gameState.soundEnabled;
+                
+                // Actualizar icono del botón de sonido
+                const soundIcon = gameState.soundEnabled ? 
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>` :
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>`;
+                
+                if (elements.fixedSoundBtn) {
+                    elements.fixedSoundBtn.innerHTML = soundIcon;
+                }
+                
+                console.log("Sonido", gameState.soundEnabled ? "activado" : "desactivado");
+                this.playTap();
+            }
+        };
+
+        // Función para desbloquear audio con la primera interacción
+        function unlockAudio() {
+            if (!gameState.audioInitialized) {
+                Sounds.initAudioContext();
+            }
+        }
+
+        // Añadir listeners para desbloquear audio
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+        document.addEventListener('keydown', unlockAudio, { once: true });
+
+        function generateRandomNumber(digits) {
+            var min = Math.pow(10, digits - 1);
+            var max = Math.pow(10, digits) - 1;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateOperationWithCarries() {
+            var num1, num2, num3;
+            var hasCarry = false;
+            var attempts = 0;
+            var carryCount = 0;
+
+            while ((carryCount < 2 || !hasCarry) && attempts < 100) {
+                num1 = generateRandomNumber(DIGITS);
+                num2 = generateRandomNumber(DIGITS);
+                num3 = generateRandomNumber(DIGITS);
+
+                var sum = num1 + num2 + num3;
+                
+                // Asegurarse de que el resultado sea de 5 cifras como máximo
+                if (sum > 99999) {
+                    attempts++;
+                    continue;
+                }
+
+                var s1Str = num1.toString();
+                var s2Str = num2.toString().padStart(DIGITS, '0');
+                var s3Str = num3.toString().padStart(DIGITS, '0');
+
+                hasCarry = false;
+                carryCount = 0;
+                var currentCarry = 0;
+
+                for (var i = DIGITS - 1; i >= 0; i--) {
+                    var sumDigits = parseInt(s1Str[i]) + parseInt(s2Str[i]) + parseInt(s3Str[i]) + currentCarry;
+                    
+                    if (sumDigits >= 10) {
+                        hasCarry = true;
+                        carryCount++;
+                        currentCarry = Math.floor(sumDigits / 10);
+                    } else {
+                        currentCarry = 0;
+                    }
+                }
+                attempts++;
+            }
+
+            summand1 = num1.toString();
+            summand2 = num2.toString();
+            summand3 = num3.toString();
+
+            if (carryCount < 2) {
+                summand1 = '23456';
+                summand2 = '34567';
+                summand3 = '18901';
+            }
+        }
+
+        function generateNewOperation() {
+            generateOperationWithCarries();
+            reset();
+        }
+
+        function init() {
+            generateNewOperation(); 
+            renderNumberBank();
+            Sounds.init();
+        }
+
+        function toggleHelpModal() {
+            elements.helpModal.classList.toggle('active');
+            Sounds.playTap();
+        }
+
+        function renderOperation() {
+            var numDigits = Math.max(summand1.length, summand2.length, summand3.length);
+            
+            // Sumando 1
+            var summand1Row = elements.summand1Row;
+            summand1Row.innerHTML = '';
+            var paddedSummand1 = summand1.padStart(numDigits, '0');
+            for (var i = 0; i < numDigits; i++) {
+                var div = document.createElement('div');
+                div.className = 'digit-box';
+                div.textContent = paddedSummand1[i];
+                summand1Row.appendChild(div);
+            }
+
+            // Sumando 2
+            var summand2Row = elements.summand2Row;
+            summand2Row.innerHTML = '';
+            var paddedSummand2 = summand2.padStart(numDigits, '0');
+            for (var i = 0; i < numDigits; i++) {
+                var div = document.createElement('div');
+                div.className = 'digit-box';
+                div.textContent = paddedSummand2[i];
+                summand2Row.appendChild(div);
+            }
+
+            // Sumando 3
+            var summand3Row = elements.summand3Row;
+            summand3Row.innerHTML = '';
+            var paddedSummand3 = summand3.padStart(numDigits, '0');
+            for (var i = 0; i < numDigits; i++) {
+                var div = document.createElement('div');
+                div.className = 'digit-box';
+                div.textContent = paddedSummand3[i];
+                summand3Row.appendChild(div);
+            }
+
+            // Línea
+            var lineRow = elements.lineRow;
+            lineRow.innerHTML = '';
+            for (var i = 0; i < numDigits; i++) {
+                var div = document.createElement('div');
+                div.className = 'line';
+                lineRow.appendChild(div);
+            }
+
+            // Respuesta
+            var answerRow = elements.answerRow;
+            answerRow.innerHTML = '';
+            for (var i = 0; i < numDigits; i++) {
+                var reverseIdx = numDigits - 1 - i;
+                var div = document.createElement('div');
+                div.className = 'answer-box';
+                div.id = 'ans-' + i;
+                
+                if (currentColumn === reverseIdx && gameStarted && !isChecked) {
+                    div.classList.add('current');
+                }
+                
+                if (userAnswer[reverseIdx] !== undefined) {
+                    div.textContent = userAnswer[reverseIdx];
+                    div.classList.add('filled');
+                    if (!isChecked) { 
+                        div.onclick = (function(idx) {
+                            return function() {
+                                deleteAnswer(idx);
+                            };
+                        })(reverseIdx);
+                    }
+                }
+                
+                answerRow.appendChild(div);
+            }
+
+            // Añadir llevadas encima del primer sumando
+            var summand1Boxes = elements.summand1Row.querySelectorAll('.digit-box');
+            for (var i = 0; i < numDigits; i++) {
+                var reverseIdx = numDigits - 1 - i;
+                if (carries[reverseIdx] && carries[reverseIdx] > 0) {
+                    var carry = document.createElement('span');
+                    carry.className = 'carry-mark';
+                    carry.textContent = carries[reverseIdx];
+                    summand1Boxes[i].appendChild(carry);
+                }
+            }
+
+            updateUI();
+        }
+
+        function renderNumberBank() {
+            var numbers = elements.digitBank;
+            numbers.innerHTML = '';
+            
+            var screenWidth = window.innerWidth;
+            var needsTwoLines = screenWidth < 400;
+            
+            if (needsTwoLines) {
+                var firstRow = document.createElement('div');
+                firstRow.style.display = 'flex';
+                firstRow.style.justifyContent = 'center';
+                firstRow.style.gap = '10px';
+                firstRow.style.marginBottom = '10px';
+                firstRow.style.width = '100%';
+                
+                var secondRow = document.createElement('div');
+                secondRow.style.display = 'flex';
+                secondRow.style.justifyContent = 'center';
+                secondRow.style.gap = '10px';
+                secondRow.style.width = '100%';
+                
+                for (var i = 0; i <= 4; i++) {
+                    var btn = document.createElement('button');
+                    btn.className = 'digit-btn';
+                    btn.textContent = i;
+                    btn.onclick = (function(num) {
+                        return function() {
+                            handleNumberClick(num);
+                        };
+                    })(i);
+                    firstRow.appendChild(btn);
+                }
+                
+                for (var i = 5; i <= 9; i++) {
+                    var btn = document.createElement('button');
+                    btn.className = 'digit-btn';
+                    btn.textContent = i;
+                    btn.onclick = (function(num) {
+                        return function() {
+                            handleNumberClick(num);
+                        };
+                    })(i);
+                    secondRow.appendChild(btn);
+                }
+                
+                numbers.appendChild(firstRow);
+                numbers.appendChild(secondRow);
+            } else {
+                for (var i = 0; i <= 9; i++) {
+                    var btn = document.createElement('button');
+                    btn.className = 'digit-btn';
+                    btn.textContent = i;
+                    btn.onclick = (function(num) {
+                        return function() {
+                            handleNumberClick(num);
+                        };
+                    })(i);
+                    numbers.appendChild(btn);
+                }
+            }
+        }
+
+        function handleNumberClick(num) {
+            if (isChecked) return;
+            if (!gameStarted) {
+                gameStarted = true;
+            }
+            
+            var numDigits = Math.max(summand1.length, summand2.length, summand3.length);
+            if (currentColumn >= numDigits) return; 
+
+            elements.feedback.classList.remove('show');
+            
+            userAnswer[currentColumn] = num;
+            
+            if (currentColumn < numDigits - 1) {
+                showCarryQuestion = true;
+                showCarryPopup();
+            } else {
+                currentColumn++;
+            }
+            
+            Sounds.playTap();
+            renderOperation();
+        }
+
+        function showCarryPopup() {
+            elements.carryPopup.classList.add('visible');
+            elements.digitBank.classList.add('hidden');
+        }
+
+        function hideCarryPopup() {
+            elements.carryPopup.classList.remove('visible');
+            elements.digitBank.classList.remove('hidden');
+        }
+
+        function handleCarry(carryAmount) {
+            if (isChecked) return;
+            
+            hideCarryPopup();
+            
+            if (carryAmount > 0) {
+                var nextColumn = currentColumn + 1;
+                carries[nextColumn] = carryAmount;
+            } else {
+                delete carries[currentColumn + 1];
+            }
+            
+            showCarryQuestion = false;
+            currentColumn++;
+            
+            Sounds.playTap();
+            renderOperation();
+        }
+
+        function deleteAnswer(idx) {
+            if (isChecked) return;
+            
+            delete userAnswer[idx];
+            delete carries[idx + 1];
+            currentColumn = idx;
+            showCarryQuestion = false;
+            isChecked = false;
+            elements.feedback.classList.remove('show');
+            Sounds.playTap();
+            renderOperation();
+        }
+
+        function backspace() {
+            if (isChecked) return;
+            
+            var numDigits = Math.max(summand1.length, summand2.length, summand3.length);
+            for (var i = numDigits - 1; i >= 0; i--) {
+                if (userAnswer[i] !== undefined) {
+                    deleteAnswer(i);
+                    break;
+                }
+            }
+        }
+
+        function checkAnswer() {
+            var numDigits = Math.max(summand1.length, summand2.length, summand3.length);
+            var correctAnswerNum = parseInt(summand1) + parseInt(summand2) + parseInt(summand3);
+            var correctAnswer = correctAnswerNum.toString().padStart(numDigits, '0');
+            
+            var userResult = '';
+            for (let i = 0; i < numDigits; i++) {
+                var columnIdx = numDigits - 1 - i;
+                if (userAnswer[columnIdx] === undefined) {
+                    elements.feedback.textContent = 'Asegúrate de completar todos los dígitos antes de comprobar.';
+                    elements.feedback.className = 'feedback error show';
+                    isChecked = false;
+                    updateUI();
+                    return;
+                }
+                userResult += userAnswer[columnIdx];
+            }
+            
+            userResult = userResult.padStart(numDigits, '0'); 
+            
+            var answerBoxes = document.querySelectorAll('.answer-box');
+            
+            for (let i = 0; i < numDigits; i++) {
+                var columnIdx = numDigits - 1 - i;
+                var answerBox = document.getElementById('ans-' + i);
+                
+                if (userAnswer[columnIdx] == correctAnswer[i]) {
+                    answerBox.classList.add('correct');
+                } else {
+                    answerBox.classList.add('incorrect');
+                }
+            }
+
+            elements.checkBtn.style.display = 'none';
+            elements.deleteBtn.style.display = 'none';
+
+            if (userResult === correctAnswer) {
+                elements.feedback.textContent = `Correcto: ${correctAnswerNum}`;
+                elements.feedback.className = 'feedback success show';
+                Sounds.playCorrect();
+                
+                if (gameState.gameMode === 'infinite') {
+                    gameState.infiniteScore += 25;
+                    elements.infiniteScore.textContent = `Puntuación: ${gameState.infiniteScore}`;
+                } else if (gameState.gameMode === 'normal') {
+                    gameState.score += (100/3);
+                }
+            } else {
+                elements.feedback.textContent = `Incorrecto: ${correctAnswerNum}`;
+                elements.feedback.className = 'feedback error show';
+                Sounds.playError();
+            }
+            
+            // Siempre mostrar el botón continuar independientemente de si la respuesta es correcta o no
+            if (gameState.gameMode === 'normal') {
+                elements.continueBtn.style.display = 'flex';
+            } else if (gameState.gameMode === 'infinite') {
+                elements.continueBtn.style.display = 'flex';
+            }
+            
+            isChecked = true;
+            renderOperation(); 
+            updateUI();
+        }
+
+        function reset() {
+            userAnswer = {};
+            carries = {};
+            currentColumn = 0;
+            showCarryQuestion = false;
+            gameStarted = false;
+            isChecked = false;
+            elements.feedback.classList.remove('show');
+            
+            var answerBoxes = document.querySelectorAll('.answer-box');
+            answerBoxes.forEach(box => {
+                box.classList.remove('correct', 'incorrect');
+            });
+            
+            elements.digitBank.style.display = 'flex';
+            
+            elements.checkBtn.style.display = 'flex';
+            elements.deleteBtn.style.display = 'flex';
+            
+            elements.continueBtn.style.display = 'none';
+            elements.homeBtn.style.display = 'none';
+            
+            renderOperation();
+        }
+
+        function updateUI() {
+            var numDigits = Math.max(summand1.length, summand2.length, summand3.length);
+            var checkButton = document.getElementById('checkBtn');
+            var nextButton = document.getElementById('continueBtn');
+            
+            if (isChecked) {
+                checkButton.style.display = 'none';
+                // El botón continuar siempre se mostrará cuando isChecked es true
+                nextButton.style.display = 'flex';
+            } else {
+                checkButton.style.display = 'flex';
+                nextButton.style.display = 'none';
+            }
+        }
+
+        function updateGameHeader(mode) {
+            elements.timer.style.display = 'none';
+            elements.infiniteScore.style.display = 'none';
+
+            if (mode === 'normal') {
+                elements.timer.style.display = 'block';
+            } else if (mode === 'infinite') {
+                elements.infiniteScore.style.display = 'block';
+            }
+        }
+
+        function startGame() {
+            Sounds.playTap();
+            
+            gameState.questions = [];
+            gameState.currentQuestionIndex = 0;
+            gameState.score = 0;
+            gameState.startTime = Date.now();
+            gameState.gameMode = 'normal';
+            gameState.infiniteScore = 0;
+            
+            DIGITS = 5;
+            
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+            
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            
+            elements.startScreen.classList.remove('active');
+            elements.gameScreen.classList.add('active');
+            
+            elements.fixedSoundBtn.style.display = 'flex';
+            elements.fixedHelpBtn.style.display = 'flex';
+            
+            updateGameHeader('normal');
+            
+            elements.normalProgress.style.display = 'block';
+            elements.normalProgressBar.style.display = 'block';
+            elements.exitInfiniteBtn.style.display = 'none';
+            elements.homeBtn.style.display = 'none';
+            
+            elements.questionTitle.textContent = 'Realiza las siguientes sumas con llevadas';
+            
+            elements.progressText.textContent = '1/3';
+            elements.progressFill.style.width = '33.33%';
+            
+            generateNewOperation();
+        }
+
+        function startInfiniteMode() {
+            Sounds.playTap();
+            
+            gameState.questions = [null];
+            gameState.currentQuestionIndex = 0;
+            gameState.score = 0;
+            gameState.startTime = Date.now();
+            gameState.gameMode = 'infinite';
+            gameState.infiniteScore = 0;
+            
+            DIGITS = 5;
+            
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+            
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+            
+            elements.finalScreen.classList.remove('active');
+            elements.gameScreen.classList.add('active');
+            
+            elements.fixedSoundBtn.style.display = 'flex';
+            elements.fixedHelpBtn.style.display = 'flex';
+            
+            updateGameHeader('infinite');
+            
+            elements.normalProgress.style.display = 'none';
+            elements.normalProgressBar.style.display = 'none';
+            elements.exitInfiniteBtn.style.display = 'inline-block';
+            elements.homeBtn.style.display = 'none';
+            
+            elements.questionTitle.textContent = 'Realiza las siguientes sumas con llevadas';
+            
+            document.querySelector('.operation-wrapper').style.display = 'flex';
+            elements.digitBank.style.display = 'flex';
+            
+            elements.infiniteScore.textContent = `Puntuación: 0`;
+            
+            generateNewOperation();
+        }
+
+        function exitInfiniteMode() {
+            Sounds.playTap();
+            
+            clearInterval(gameState.timerInterval);
+            
+            resetAllGameState();
+            
+            elements.gameScreen.classList.remove('active');
+            elements.startScreen.classList.add('active');
+        }
+
+        function goToStartScreen() {
+            Sounds.playTap();
+            
+            clearInterval(gameState.timerInterval);
+            
+            resetAllGameState();
+            
+            elements.gameScreen.classList.remove('active');
+            elements.startScreen.classList.add('active');
+        }
+
+        function resetAllGameState() {
+            userAnswer = {};
+            carries = {};
+            currentColumn = 0;
+            showCarryQuestion = false;
+            gameStarted = false;
+            isChecked = false;
+            
+            gameState.questions = [];
+            gameState.currentQuestionIndex = 0;
+            gameState.score = 0;
+            gameState.startTime = null;
+            gameState.gameMode = 'normal';
+            gameState.infiniteScore = 0;
+            
+            elements.feedback.classList.remove('show');
+            elements.checkBtn.style.display = 'flex';
+            elements.deleteBtn.style.display = 'flex';
+            elements.continueBtn.style.display = 'none';
+            elements.homeBtn.style.display = 'none';
+            elements.exitInfiniteBtn.style.display = 'none';
+            
+            if (elements.fixedSoundBtn) {
+                elements.fixedSoundBtn.style.display = 'none';
+            }
+            if (elements.fixedHelpBtn) {
+                elements.fixedHelpBtn.style.display = 'none';
+            }
+            
+            var answerBoxes = document.querySelectorAll('.answer-box');
+            answerBoxes.forEach(box => {
+                box.classList.remove('correct', 'incorrect');
+            });
+            
+            elements.digitBank.style.display = 'flex';
+            
+            elements.questionTitle.textContent = 'Realiza las siguientes sumas con llevadas';
+            
+            document.querySelector('.operation-wrapper').style.display = 'flex';
+        }
+
+        function nextQuestion() {
+            Sounds.playTap();
+            
+            if (gameState.gameMode === 'normal') {
+                gameState.currentQuestionIndex++;
+                
+                elements.progressText.textContent = `${gameState.currentQuestionIndex + 1}/3`;
+                elements.progressFill.style.width = `${((gameState.currentQuestionIndex + 1) / 3) * 100}%`;
+                
+                if (gameState.currentQuestionIndex < 3) {
+                    generateNewOperation();
+                } else {
+                    endGame();
+                }
+            } else if (gameState.gameMode === 'infinite') {
+                generateNewOperation();
+            }
+        }
+
+        function updateTimer() {
+            if (!gameState.startTime) return;
+            
+            const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            elements.timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+            
+            const score = Math.round(gameState.score);
+            
+            const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            elements.gameScreen.classList.remove('active');
+            elements.finalScreen.classList.add('active');
+            
+            if (elements.fixedSoundBtn) {
+                elements.fixedSoundBtn.style.display = 'none';
+            }
+            if (elements.fixedHelpBtn) {
+                elements.fixedHelpBtn.style.display = 'none';
+            }
+            
+            elements.finalScore.textContent = score;
+            elements.finalTime.textContent = `Tiempo: ${timeStr}`;
+            
+            if (score === 100) {
+                elements.finalMessage.textContent = '¡Perfecto! Has logrado la máxima puntuación!';
+                elements.trophyContainer.classList.add('show');
+                elements.finalScore.classList.add('perfect');
+                
+                createConfetti();
+                
+                // Llama a la función específica para reproducir el sonido de victoria
+                reproducirSonidoVictoria();
+            } else {
+                elements.trophyContainer.classList.remove('show');
+                elements.finalScore.classList.remove('perfect');
+                elements.finalMessage.textContent = '¡Repasa un poco y sigue practicando!';
+                
+                Sounds.playCompleted();
+            }
+        }
+
+        /**
+         * Función específica para reproducir el sonido de victoria.
+         * Se llama solo cuando la puntuación final es exactamente 100.
+         * Usa un pequeño retraso para evitar problemas de autoplay del navegador.
+         */
+        function reproducirSonidoVictoria() {
+            setTimeout(() => {
+                Sounds.playVictory();
+            }, 500); // Retraso de 500ms para asegurar la reproducción
+        }
+
+        function createConfetti() {
+            const colors = ['#d946ef', '#ff9f43', '#3b82f6', '#10b981', '#facc15'];
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = `${Math.random() * 10 + 5}px`;
+                    confetti.style.height = confetti.style.width;
+                    confetti.style.opacity = Math.random() * 0.5 + 0.5;
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 30);
+            }
+        }
+
+        function restartGame() {
+            Sounds.playTap();
+            
+            resetAllGameState();
+            
+            elements.finalScreen.classList.remove('active');
+            elements.startScreen.classList.add('active');
+        }
+
+        function toggleSound() {
+            Sounds.toggle();
+        }
+
+        // Soporte de teclado
+        document.addEventListener('keydown', (e) => {
+            if (!elements.gameScreen.classList.contains('active')) return;
+            
+            if (e.key >= '0' && e.key <= '9') {
+                handleNumberClick(parseInt(e.key));
+            }
+            
+            if (e.key === 'Backspace') {
+                backspace();
+            }
+            
+            if (e.key === 'Enter') {
+                if (elements.checkBtn.style.display !== 'none') {
+                    checkAnswer();
+                } else if (elements.continueBtn.style.display !== 'none') {
+                    nextQuestion();
+                }
+            }
+            
+            if (e.key === 'Escape' && elements.helpModal.classList.contains('active')) {
+                toggleHelpModal();
+            }
+            
+            if (e.key === 'Escape' && elements.carryPopup.classList.contains('visible')) {
+                hideCarryPopup();
+            }
+        });
+
+        elements.helpModal.addEventListener('click', (e) => {
+            if (e.target === elements.helpModal) {
+                toggleHelpModal();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (elements.gameScreen.classList.contains('active')) {
+                renderNumberBank();
+            }
+        });
+
+        // Inicialización del juego
+        init();
+    </script>
+</body>
+</html>
