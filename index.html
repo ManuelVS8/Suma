@@ -453,25 +453,6 @@
             75% { transform: translateX(5px); }
         }
 
-        .arrow-container {
-            display: flex;
-            align-items: center;
-            margin-left: 0.8rem;
-        }
-
-        .arrow {
-            width: 2.4rem;
-            height: 2.4rem;
-            color: #7c3aed;
-            animation: bounce 1s infinite;
-            flex-shrink: 0;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
         /* Banco de dígitos - optimizado para móviles con distribución simétrica */
         .digit-bank {
             display: flex;
@@ -864,11 +845,6 @@
                 gap: 12px;
             }
             
-            .arrow {
-                width: 2.8rem;
-                height: 2.8rem;
-            }
-            
             .btn {
                 padding: 14px 35px;
                 font-size: 1.2em;
@@ -949,11 +925,6 @@
                 gap: 14px;
             }
             
-            .arrow {
-                width: 3.2rem;
-                height: 3.2rem;
-            }
-            
             .btn {
                 padding: 15px 40px;
                 font-size: 1.2em;
@@ -1030,11 +1001,6 @@
                 gap: 8px;
             }
             
-            .arrow {
-                width: 2rem;
-                height: 2rem;
-            }
-            
             .btn {
                 padding: 10px 25px;
                 font-size: 1em;
@@ -1094,11 +1060,6 @@
             .digit-bank {
                 max-width: 800px;
                 gap: 8px;
-            }
-            
-            .arrow {
-                width: 1.8rem;
-                height: 1.8rem;
             }
             
             .btn {
@@ -1215,11 +1176,6 @@
                     <div id="lineRow" class="row"></div>
                     <div id="answerRow" class="row"></div>
                 </div>
-                <div class="arrow-container">
-                    <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                        <path d="M12 19V5M5 12l7-7 7 7"/>
-                    </svg>
-                </div>
             </div>
 
             <!-- Banco de dígitos siempre visible -->
@@ -1316,7 +1272,6 @@
             startTime: null,
             timerInterval: null,
             soundEnabled: true,
-            audioInitialized: false,
             gameMode: 'normal',
             infiniteScore: 0
         };
@@ -1359,13 +1314,12 @@
             carryPopup: document.getElementById('carryPopup')
         };
 
-        // Sistema de sonido MEJORADO con gestión de contexto de audio
+        // Sistema de sonido mejorado y simplificado
         const Sounds = {
-            audioContext: null,
             sounds: {},
+            isUnlocked: false,
             
             init() {
-                // Crear objetos Audio para cada sonido
                 this.sounds = {
                     correct: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/7b86808e254100aeaba6285b3e0b82650ae78055/Correcto.mp3?raw=true'),
                     error: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/7b86808e254100aeaba6285b3e0b82650ae78055/Error.mp3?raw=true'),
@@ -1374,45 +1328,32 @@
                     tap: new Audio('https://github.com/ManuelVS8/Efectos_audio/blob/37b3eb2da9c15c04dfb71dfe1be60f088ea3cdfc/Tap.mp3?raw=true')
                 };
 
-                // Configurar propiedades de los audios
                 Object.values(this.sounds).forEach(audio => {
                     audio.preload = 'auto';
                     audio.volume = 0.7;
                 });
-
                 console.log("Sistema de audio inicializado");
             },
 
-            initAudioContext() {
-                if (!this.audioContext) {
-                    try {
-                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        console.log("AudioContext creado:", this.audioContext.state);
-                    } catch (e) {
-                        console.error("Error al crear AudioContext:", e);
-                    }
-                }
-
-                // Reanudar el contexto si está suspendido
-                if (this.audioContext && this.audioContext.state === 'suspended') {
-                    this.audioContext.resume().then(() => {
-                        console.log("AudioContext reanudado exitosamente");
-                        gameState.audioInitialized = true;
-                    }).catch(e => {
-                        console.error("Error al reanudar AudioContext:", e);
-                    });
-                } else {
-                    gameState.audioInitialized = true;
-                }
+            // Función para desbloquear el audio en la primera interacción
+            unlock() {
+                if (this.isUnlocked) return;
+                
+                // Crear y reproducir un sonido silencioso para desbloquear el audio
+                const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAAAQAEAAEAfAAAQAQABAAgAZGF0YQAAAAA=");
+                silentAudio.play().catch(() => {
+                    // Ignorar errores, el objetivo es solo activar el contexto de audio
+                });
+                
+                this.isUnlocked = true;
+                console.log("Audio desbloqueado");
             },
 
             play(soundName) {
                 if (!gameState.soundEnabled) return;
 
-                // Inicializar el contexto de audio si no está listo
-                if (!gameState.audioInitialized) {
-                    this.initAudioContext();
-                }
+                // Asegurarse de que el audio esté desbloqueado
+                this.unlock();
 
                 const audio = this.sounds[soundName];
                 if (!audio) {
@@ -1420,7 +1361,6 @@
                     return;
                 }
 
-                // Reiniciar el audio y reproducir
                 audio.currentTime = 0;
                 audio.play()
                     .then(() => {
@@ -1428,35 +1368,18 @@
                     })
                     .catch(e => {
                         console.warn(`No se pudo reproducir '${soundName}':`, e.message);
-                        // Intentar inicializar el contexto de audio de nuevo
-                        this.initAudioContext();
                     });
             },
             
-            playCorrect() {
-                this.play('correct');
-            },
-            
-            playError() {
-                this.play('error');
-            },
-            
-            playCompleted() {
-                this.play('completed');
-            },
-            
-            playVictory() {
-                this.play('victory');
-            },
-            
-            playTap() {
-                this.play('tap');
-            },
+            playCorrect() { this.play('correct'); },
+            playError() { this.play('error'); },
+            playCompleted() { this.play('completed'); },
+            playVictory() { this.play('victory'); },
+            playTap() { this.play('tap'); },
             
             toggle() {
                 gameState.soundEnabled = !gameState.soundEnabled;
                 
-                // Actualizar icono del botón de sonido
                 const soundIcon = gameState.soundEnabled ? 
                     `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -1477,18 +1400,6 @@
             }
         };
 
-        // Función para desbloquear audio con la primera interacción
-        function unlockAudio() {
-            if (!gameState.audioInitialized) {
-                Sounds.initAudioContext();
-            }
-        }
-
-        // Añadir listeners para desbloquear audio
-        document.addEventListener('click', unlockAudio, { once: true });
-        document.addEventListener('touchstart', unlockAudio, { once: true });
-        document.addEventListener('keydown', unlockAudio, { once: true });
-
         function generateRandomNumber(digits) {
             var min = Math.pow(10, digits - 1);
             var max = Math.pow(10, digits) - 1;
@@ -1508,7 +1419,6 @@
 
                 var sum = num1 + num2 + num3;
                 
-                // Asegurarse de que el resultado sea de 5 cifras como máximo
                 if (sum > 99999) {
                     attempts++;
                     continue;
@@ -1577,7 +1487,7 @@
                 summand1Row.appendChild(div);
             }
 
-            // Sumando 2
+            // Sumando 2 (sin signo)
             var summand2Row = elements.summand2Row;
             summand2Row.innerHTML = '';
             var paddedSummand2 = summand2.padStart(numDigits, '0');
@@ -1588,9 +1498,17 @@
                 summand2Row.appendChild(div);
             }
 
-            // Sumando 3
+            // Sumando 3 con signo +
             var summand3Row = elements.summand3Row;
             summand3Row.innerHTML = '';
+            var sumSign = document.createElement('div');
+            sumSign.className = 'sum-sign';
+            sumSign.textContent = '+';
+            sumSign.style.fontSize = '1.6rem';
+            sumSign.style.fontWeight = 'bold';
+            sumSign.style.marginRight = '0.5rem';
+            sumSign.style.alignSelf = 'center';
+            summand3Row.appendChild(sumSign);
             var paddedSummand3 = summand3.padStart(numDigits, '0');
             for (var i = 0; i < numDigits; i++) {
                 var div = document.createElement('div');
@@ -1844,7 +1762,6 @@
                 Sounds.playError();
             }
             
-            // Siempre mostrar el botón continuar independientemente de si la respuesta es correcta o no
             if (gameState.gameMode === 'normal') {
                 elements.continueBtn.style.display = 'flex';
             } else if (gameState.gameMode === 'infinite') {
@@ -1888,7 +1805,6 @@
             
             if (isChecked) {
                 checkButton.style.display = 'none';
-                // El botón continuar siempre se mostrará cuando isChecked es true
                 nextButton.style.display = 'flex';
             } else {
                 checkButton.style.display = 'flex';
@@ -1908,6 +1824,7 @@
         }
 
         function startGame() {
+            Sounds.unlock(); // Desbloquear audio al iniciar
             Sounds.playTap();
             
             gameState.questions = [];
@@ -1947,6 +1864,7 @@
         }
 
         function startInfiniteMode() {
+            Sounds.unlock(); // Desbloquear audio al iniciar
             Sounds.playTap();
             
             gameState.questions = [null];
@@ -2109,8 +2027,9 @@
                 
                 createConfetti();
                 
-                // Llama a la función específica para reproducir el sonido de victoria
-                reproducirSonidoVictoria();
+                setTimeout(() => {
+                    Sounds.playVictory();
+                }, 500);
             } else {
                 elements.trophyContainer.classList.remove('show');
                 elements.finalScore.classList.remove('perfect');
@@ -2118,17 +2037,6 @@
                 
                 Sounds.playCompleted();
             }
-        }
-
-        /**
-         * Función específica para reproducir el sonido de victoria.
-         * Se llama solo cuando la puntuación final es exactamente 100.
-         * Usa un pequeño retraso para evitar problemas de autoplay del navegador.
-         */
-        function reproducirSonidoVictoria() {
-            setTimeout(() => {
-                Sounds.playVictory();
-            }, 500); // Retraso de 500ms para asegurar la reproducción
         }
 
         function createConfetti() {
